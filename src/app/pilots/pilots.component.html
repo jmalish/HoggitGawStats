@@ -1,0 +1,10 @@
+<p>
+  pilots works!
+</p>
+
+<button (click)="getPilots()">Get Pilots</button><br>
+<br>
+
+<ul class="pilots">
+  <li *ngFor="let pilot of pilots">{{pilot.name}}</li>
+</ul>
