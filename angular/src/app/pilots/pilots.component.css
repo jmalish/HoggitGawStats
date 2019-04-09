@@ -1,0 +1,15 @@
+.pilotList {
+  width: 33%;
+  display: block;
+  float: left;
+}
+
+.selectedPilot {
+  display: block;
+  float: left;
+}
+
+.selectedPilot span {
+  border: solid 2px black;
+  padding: 10px;
+}

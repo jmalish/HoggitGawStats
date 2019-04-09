@@ -1,0 +1,21 @@
+<p>
+  pilots works!
+</p>
+
+<button (click)="getPilots()">Get Pilots</button><br>
+<button (click)="test()">Test</button>
+<br>
+
+<div class="pilotSearch">Search: <input #searchBox id="search-box" (input)="search(searchBox.value)" /></div><br/>
+
+<div class="pilotList">
+  <ul class="pilots">
+    <li *ngFor="let pilot of pilots" (click)="onSelect(pilot)">{{pilot.name}}
+      <span *ngIf="pilot.aliases.length > 0"><br>AKA:<span *ngFor="let alias of pilot.aliases"> {{alias}}</span><span *ngIf="pilot.aliases.length > 1">, </span></span>
+    </li>
+  </ul>
+</div>
+
+<div class="selectedPilot">
+  <span *ngIf="selectedPilot">{{selectedPilot.name}}</span>
+</div>
