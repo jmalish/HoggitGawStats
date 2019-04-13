@@ -17,38 +17,18 @@ export class PilotsService {
   ) { }
 
   getPilots(): Observable<Pilot[]> {
-    // return this.http.get<any>(this.monitoring.url, {params}).pipe(
-    //   map(res => {
-    //     // noinspection TypeScriptUnresolvedVariable
-    //     const allows = res.results[0].series[0].values; // put the http results into a less messy format
-    //     const regexp = new RegExp('player: (.+) side:. slot:.+ ucid: (.+)'); // create regex
-    //
-    //     this.pilots = []; // clear current pilots array so we don't double up
-    //     allows.forEach((allow) => { // foreach /thing/ in the http results
-    //       const regMatch = allow[1].match(regexp); // get the regex match, which includes the groups
-    //
-    //       const newPilot = new Pilot(regMatch[2], regMatch[1]); // create temp pilot object
-    //       const testForExistingPilot = this.pilots.find(pilot => pilot.ucid === newPilot.ucid); // search through existing pilots
-    //
-    //       if (testForExistingPilot) { // if this is not null, the pilot already exists
-    //         if (testForExistingPilot.name !== newPilot.name) { // if the two names don't match, we add an alias
-    //           // testForExistingPilot new equals an existing pilot in the array
-    //           const testAliases = testForExistingPilot.aliases.find(alias => alias === newPilot.name);
-    //
-    //           if (!testAliases) { // if the returned array is empty, the name does not exist in aliases yet
-    //             testForExistingPilot.aliases.push(newPilot.name);
-    //           }
-    //         } // otherwise do nothing
-    //       } else { // else pilot does not exist, so we should add it
-    //         this.pilots.push(newPilot);
-    //       }
-    //     }); // end of forEach
-    //
-    //     return this.pilots;
-    //   })
-    // );
+    return this.http.get<any>('http://localhost:4201/pilots').pipe(
+      map(res => {
+        this.pilots = []; // clear current pilots array so we don't double up
 
-    // TODO: get pilots from local server
-    return of(new Pilot('a', 'a')); // temp to avoid error
+        res.forEach(pilot => {
+          this.pilots.push(pilot);
+        });
+
+        return this.pilots;
+      })
+    );
+
+    // return of(new Pilot('a', 'a')); // temp to avoid error
   } // end of getPilots()
 } // end of PilotService class

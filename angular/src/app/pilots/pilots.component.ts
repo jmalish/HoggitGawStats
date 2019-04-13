@@ -23,7 +23,9 @@ export class PilotsComponent implements OnInit {
   }
 
   getPilots(): void {
-    this.pilotService.getPilots().subscribe(servicePilots => {this.pilots = servicePilots});
+    this.pilotService.getPilots().subscribe(servicePilots => {
+      this.pilots = servicePilots;
+    });
   }
 
   onSelect(pilot: Pilot) {
