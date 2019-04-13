@@ -1,7 +1,7 @@
 # HoggitGawStats
 
 #### Quick start:
-- Ask racer for secrets file
+- Get secrets file from Jordan
 - run `npm install` to install all node modules
 
 ###### Backend / Node server
