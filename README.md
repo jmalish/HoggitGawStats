@@ -1,7 +1,12 @@
 # HoggitGawStats
 
+#### Prereqs:
+- node
+- npm
+- run `npm -g i angular/cli@latest` to install the latest version of angular
+
 #### Quick start:
-- Get secrets file from Jordan
+- Get secrets file from jmalish/racer
 - run `npm install` to install all node modules
 
 ###### Backend / Node server

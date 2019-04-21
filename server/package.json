@@ -16,6 +16,7 @@
     "cors": "2.8.5",
     "express": "^4.16.4",
     "fs": "0.0.1-security",
+    "merge-json": "0.1.0-b.3",
     "moment": "2.24.0",
     "request": "2.88.0",
     "tsc": "1.20150623.0",

@@ -4,25 +4,27 @@ import * as bodyParser from 'body-parser';
 import * as fs from 'fs';
 import * as request from 'request';
 import * as moment from 'moment';
-import * as secrets from '../../secrets.json'; // "can't find module" can be ignored
+import * as mergeJSON from 'merge-json';
 
+// custom modules and classes
+let secrets = require('../../secrets.json');
+let LogChunk = require('./classes/DateChunk.js');
 let routes = require('./routes');
 
 // <editor-fold desc="Variables">
 const port = secrets.localserver.port;
 const fileName = 'dcslog.json';
 
-const app = express()
+const app = express() // setup express with necessary settings
     .use(cors())
     .use(bodyParser.json())
     .use('/', routes);
 // </editor-fold desc="Variables">
 
 // <editor-fold desc="Program">
+checkForLog(); // look to see if the log exists
 
-// checkForLog();
-
-app.listen(port, (err) => {
+app.listen(port, (err) => { // create server
     if (err) {
         return console.log(err);
     }
@@ -35,74 +37,105 @@ app.listen(port, (err) => {
 // <editor-fold desc="FUNctions">
 // checks to see if the local log file exists, if not, ask if we want to create and populate it
 function checkForLog() {
-    fs.exists(fileName, (exists => {
+    fs.exists(fileName, (exists => { // check if file exists
         if (!exists) {
             console.log("Local log file not found, do you want to download the full log from the server? y/n " +
                 "(This will take a while)");
-            process.stdin.addListener("data", function (data) {
-                const response = data.toString().trim().toLowerCase();
+            process.stdin.addListener("data", function (data) { // ask user if they want to download log
+                const response = data.toString().trim().toLowerCase(); // save answer
 
                 if (response === 'y') {
-                    writeToFile(done => {
-
+                    buildLog(log => {
+                        fs.appendFile(fileName, log, _ => {});
                     })
                 } else {
                     console.log('ok :(');
                 }
             })
-        } else {
+        } else { // if the file is found, update log so it's up to date
             console.log('Log file found!');
+            // console.log('Updating log, this could take a sec...');
+            // updateLog(done => { //TODO: rewrite updateLog()
+            //     console.log('Done');
+            // })
         }
     }));
 }
 
-// parse the local file into the data requested
-function parseLog() {
-    let logFile = fs.readFileSync(fileName);
-    let jsonLog = JSON.parse(logFile); // buffer to string warning can be ignored
-
-    console.log(jsonLog.results[0].series[0].values[0]);
-
-}
-
 // writes the downloaded log to the local file
-function writeToFile(callback) {
+function buildLog(callback) {
+    let dateFormatString = 'YYYY-MM-DDTHH:mm:ss.SSS';
+    let logInMem = [];  // place to temporarily hold log so we're not reading and writing a ton
+
     console.log('Downloading log, hold on...');
-    getLog(log => {
-        console.log('Log downloaded, writing to file');
-        fs.appendFileSync(fileName, log);
-        console.log('Done!');
+    buildDates(chunks => { // get date chunks
+        for (let i = 0; i <= chunks.length - 1; i++) {
+            setTimeout(function (i) {
+                getLog(log => {
+                    logInMem = mergeJSON(logInMem, log); // append new log chunk to log in memory
+                }, moment.utc(chunks[i].startTime).format(dateFormatString), moment.utc(chunks[i].stopTime).format(dateFormatString));
+            }, 5000 * i, i); // if needed, increase timeout (5000)
+        }
     });
+    callback(logInMem); // return the log json object
+    console.log('done');
 }
 
-// retrieves the log from the server // TODO: go through 1 day at a time to download the log
-function getLog(callback) {
-    const monitoring = secrets.monitoring;
+// builds an array of date chunks
+function buildDates(callback) {
+    let dateChunks: DateChunk[] = []; // stores dateChunks so we can return them as an array
 
-    const properties = {
-        'u': monitoring.user,
-        'p': monitoring.password,
-        'q': 'SELECT "message" FROM "telegraf"."autogen"."syslog" WHERE time > now() - 1d' // anything longer than 1 day will likely crash influx
+    let initialTime = moment('2018-11-27T00:00:00.000'); // as best I can tell, the first line in the log starts after this date/time
+    let chunkLength = 12; // how long we want chunks to be, in hours, default 12
+
+    // find how many chunks we need, finds the time difference between initial datetime and current datetime in hours, divides by 12 to get number of 12 hours blocks
+    // this will actually give a few hours before the start time and after the current time, but that shouldn't be a problem
+    let chunksNeeded = Math.ceil(initialTime.diff(moment().format(), 'hours') / -(chunkLength));
+
+    let nextTime = initialTime.clone(); // .add() below mutates the object it's attached to, so we clone this one so we can use it later
+
+    for (let i = 0; i < chunksNeeded; i++) { // go through and create the needed chunks
+        let startTime = nextTime.clone();
+        let stopTime = nextTime.clone();
+
+        startTime.add(1, 'milliseconds'); // add 1 millisecond so we don't run the risk of getting the same line twice
+        stopTime.add(chunkLength, 'hours'); // add number of hours to get end time
+
+
+        dateChunks.push(new LogChunk(startTime, stopTime)); // add to our array
+
+        nextTime.add(chunkLength, 'hours'); // set nextTime to be ready for next iteration
+    }
+
+    callback(dateChunks); // return chunks
+}
+
+// retrieves the log from the server
+function getLog(callback, startTime: string = null, stopTime: string = null) {
+    let qString = 'SELECT "message" FROM "telegraf"."autogen"."syslog" WHERE time > now() - 5m'; // set default query
+
+    if (startTime && stopTime) { // if both startTime and stopTime are set, build a query using them
+        qString = 'SELECT "message" FROM "telegraf"."autogen"."syslog" ' +
+            'WHERE time >= \'' + startTime + // start time
+            '\' AND time < \'' + stopTime + '\';';  // end time
+    }
+
+    const properties = { // set properties for server request using secrets file
+        'u': secrets.monitoring.user,
+        'p': secrets.monitoring.password,
+        'q': qString
     };
 
-    request({
-        url: monitoring.url,
+    request({ // send a request to the server using the given settings
+        url: secrets.monitoring.url,
         qs: properties
     }, function (err, res, body) {
         if (err) {console.log(err); return;}
-        callback(body);
-    })
-}
 
-// supply initial date, returns initial date, plus one day previous
-function buildDates(year: number, month: number, day: number) {
-    let dates = [];
+        let log = JSON.parse(body); // save the log to a local variable in json format
+        log = log.results[0].series[0].values; // cut down to the part of the json we want
 
-    let initialDate = moment(year + '-' + month + '-' + day, 'YYYY-MM-DD');
-
-    dates.push(initialDate.format('YYYY-MM-DD'));
-    dates.push(initialDate.subtract(1, 'day').format('YYYY-MM-DD'));
-
-    return dates;
+        callback(JSON.stringify(log)); // return the log
+    });
 }
 // </editor-fold desc="FUNctions">

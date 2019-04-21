@@ -3,6 +3,7 @@
 # my ignores
 secrets.json
 dcslog.json
+test.*
 
 # compiled output
 */dist

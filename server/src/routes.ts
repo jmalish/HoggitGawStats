@@ -1,11 +1,10 @@
 import * as express from 'express';
 import * as fs from 'fs';
-import * as cors from 'cors';
+
+let Pilot = require('./classes/Pilot.js');
 
 let router = express.Router();
-
 let fileName = 'dcslog.json';
-
 
 router.get('/test', function (req, res, next) {
     res.send('test!');
@@ -62,19 +61,4 @@ function getPilots(callback) {
     });
 
     callback(pilots);
-}
-
-class Pilot {
-    name: string;
-    ucid: string;
-    aliases: string[] = [];
-
-    constructor(_name, _ucid) {
-        this.name = _name;
-        this.ucid = _ucid;
-    }
-
-    addAlias(_name) {
-        this.aliases.push(_name);
-    }
 }
