@@ -24,7 +24,7 @@ function getPilots(callback) {
     let pilots: Pilot[] = [];
     const regexp = new RegExp('player: (.+) side:. slot:.+ ucid: ([a-z0-9]{32})'); // create regex
 
-    let logFile = JSON.parse(fs.readFileSync(fileName)).results[0].series[0].values; // ignore buffer warning
+    let logFile = JSON.parse(fs.readFileSync(fileName)); // ignore buffer warning
 
     logFile.forEach(line => {
         if (line[1].indexOf('ALLOW') > 0) { // check if line is a pilot entering a plane
