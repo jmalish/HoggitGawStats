@@ -2,63 +2,99 @@ import * as express from 'express';
 import * as fs from 'fs';
 
 let Pilot = require('./classes/Pilot.js');
+let TeamKill = require('./classes/TeamKill');
 
 let router = express.Router();
-let fileName = 'dcslog.json';
+
+let pilots: Pilot[] = [];
+let teamKills: TeamKill[] = [];
+
+readNamesFile(_pilots => {pilots = _pilots});
+readTeamKillsFile(_tks => {teamKills = _tks});
 
 router.get('/test', function (req, res, next) {
     res.send('test!');
 });
 
 router.get('/pilots', function (req, res, next) {
-    getPilots(results => {
-        res.send(results);
-    })
+    res.send(pilots);
+});
+
+router.get('/pilot/:ucid', function (req, res, next) {
+    let pilotUcid = req.params.ucid;
+
+    let findPilot = pilots.find(function (pilot) {
+        return pilot.ucid === pilotUcid;
+    });
+
+    res.send(findPilot);
+});
+
+router.get('/teamkills', function (req, res, next) {
+    res.send(this.teamKills);
 });
 
 
-module.exports = router;
+// <editor-fold desc='Functions'>
+function readNamesFile(callback) {
+    pilots = []; // empty pilots array
 
+    fs.readFile('data/name_data.csv', 'utf8', function(err, data) {
+        let rows = data.split('\r\n');
 
-function getPilots(callback) {
-    let pilots: Pilot[] = [];
-    const regexp = new RegExp('player: (.+) side:. slot:.+ ucid: ([a-z0-9]{32})'); // create regex
+        rows.forEach(row => {
+            let newPilot = new Pilot();
+            if (row[0] != undefined) { // make sure we don't grab an empty line
+                let columns = row.split(',');
 
-    let logFile = JSON.parse(fs.readFileSync(fileName)); // ignore buffer warning
+                if (columns[0] === 'uID') return; // skip headers line
 
-    logFile.forEach(line => {
-        if (line[1].indexOf('ALLOW') > 0) { // check if line is a pilot entering a plane
-            try {
-                const regMatch = line[1].match(regexp); // get the regex match, which includes the groups
+                newPilot.name = '';
+                newPilot.ucid = columns[0];
+                newPilot.slID = columns[1];
 
-                if (regMatch !== null) { // make sure regmatch is not null, pretty sure this happens when the pilots name is blank
-                    const newPilot = new Pilot(regMatch[1], regMatch[2]); // create temp pilot object
+                for (let i = columns.length - 1; i > 1; i--) {
+                    if (columns[i] !=  '0' && columns[i] != '0\r') {
+                        if (newPilot.name === '') {
+                            newPilot.name = columns[i];
+                        } else {
+                            if (columns[i] != newPilot.name) { // make sure this name doesn't match the current name
+                                let checkAliases = newPilot.aliases.find(alias => { // make sure this name isn't already in the array
+                                    return alias === columns[i];
+                                });
 
-                    const testForExistingPilot = pilots.find(pilot => { // search through existing pilots
-                        return pilot.ucid === newPilot.ucid
-                    });
-
-                    if (testForExistingPilot) { // if this is not null, the pilot already exists
-                        if (testForExistingPilot.name !== newPilot.name) { // if the two names don't match, we add an alias
-                            // testForExistingPilot now equals an existing pilot in the array
-
-                            if (testForExistingPilot.aliases.length > 0) { // if this pilot doesn't have any aliases, no need to check for a match
-                                if (testForExistingPilot.aliases.find(alias => alias !== newPilot.name)) {
-                                    testForExistingPilot.addAlias(newPilot.name);
-                                }
-                            } else {
-                                testForExistingPilot.addAlias(newPilot.name);
+                                if (!checkAliases) newPilot.aliases.push(columns[i]);
                             }
-                        } // otherwise do nothing
-                    } else { // else pilot does not exist, so we should add it
-                        pilots.push(newPilot);
+                        }
                     }
                 }
-            } catch (err) {
-                console.log(err);
             }
-        }
+            if (newPilot.ucid != undefined) {
+                pilots.push(newPilot);
+            }
+        });
+        callback(pilots);
     });
-
-    callback(pilots);
 }
+
+function readTeamKillsFile(callback) {
+    teamKills = []; // clear teamKills array
+
+    fs.readFile('data/teamkills.csv', 'utf8', function(err, data) {
+        let rows = data.split('\r\n');
+
+        rows.forEach(row => {
+            if (row[0] != undefined) { // make sure we don't grab an empty line
+                let columns = row.split(',');
+
+                if (columns[0] === 'uID') return; // skip headers line
+
+                teamKills.push(new TeamKill(columns[0], columns[1], columns[2], columns[3], columns[4], columns[5], columns[6], columns[7], columns[8]));
+            }
+        });
+        callback(teamKills);
+    });
+}
+// </editor-fold desc='Functions'>
+
+module.exports = router;

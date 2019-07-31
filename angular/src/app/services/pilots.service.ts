@@ -17,17 +17,26 @@ export class PilotsService {
     private http: HttpClient
   ) { }
 
-  getPilots(): Observable<Pilot[]> {
+  getAllPilots(): Observable<Pilot[]> {
     return this.http.get<any>('http://localhost:' + secrets.localserver.port + '/pilots').pipe(
       map(res => {
         this.pilots = []; // clear current pilots array so we don't double up
 
         res.forEach(pilot => {
+          // console.log(pilot);
           this.pilots.push(pilot);
         });
 
         return this.pilots;
       })
     );
-  } // end of getPilots()
+  } // end of getAllPilots()
+
+  getPilotByUcid(ucid: string): Observable<Pilot> {
+    return this.http.get<any>('http://localhost:' + secrets.localserver.port + '/pilot/' + ucid).pipe(
+      map(res => {
+        return res;
+      })
+    );
+  }
 } // end of PilotService class

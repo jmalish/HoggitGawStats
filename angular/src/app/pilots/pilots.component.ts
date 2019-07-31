@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import {PilotsService} from '../services/pilots.service';
 import {Pilot} from '../classes/pilot';
 import {Observable, of, Subject} from 'rxjs/index';
+import {debounceTime} from 'rxjs/internal/operators';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-pilots',
@@ -11,41 +13,42 @@ import {Observable, of, Subject} from 'rxjs/index';
 export class PilotsComponent implements OnInit {
   pilots: Pilot[] = [];
   displayPilots: Pilot[] = [];
-  selectedPilot: Pilot;
-  private searchTerm;
+  // selectedPilot: Pilot;
 
   constructor(
-    private pilotService: PilotsService
+    private pilotService: PilotsService,
+    private router: Router
   ) { }
 
   ngOnInit() {
-    // this.getPilots();
+    if (this.pilots.length === 0) {
+      this.getPilots();
+    }
   }
 
   getPilots(): void {
-    this.pilotService.getPilots().subscribe(servicePilots => {
-      this.pilots = servicePilots;
+    this.pilotService.getAllPilots().subscribe(servicePilots => {
+      this.displayPilots = this.pilots = servicePilots;
     });
   }
 
-  onSelect(pilot: Pilot) {
-    this.selectedPilot = pilot;
-  }
-
-  // searchPilots(searchTerm: string): Observable<any> {
-  //   if (!searchTerm.trim()) {
-  //     return of(this.pilots);
-  //   }
-  //   return of(this.pilots.find(pilot => {
-  //     pilot.name.search(searchTerm);
-  //   }));
+  // onSelect(pilot: Pilot) {
+  //   this.selectedPilot = pilot;
   // }
+
+  searchPilots(searchTerm: string): void {
+    if (!searchTerm.trim()) {
+      this.displayPilots = this.pilots;
+    } else {
+      this.displayPilots = this.pilots.filter(pilot => pilot.name.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1);
+    }
+  }
 
   test(): any {
 
   }
 
-  search(term: string): any {
-    this.searchTerm = term;
+  goToPilot(ucid: string): void {
+    this.router.navigate(['/pilot', ucid]);
   }
 }

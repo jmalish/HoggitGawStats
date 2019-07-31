@@ -2,7 +2,7 @@
 
 # my ignores
 secrets.json
-dcslog.json
+server/dcslog.*
 test.*
 
 # compiled output

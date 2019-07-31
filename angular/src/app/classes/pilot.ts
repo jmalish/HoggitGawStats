@@ -3,12 +3,9 @@ export class Pilot {
   name: string;
   aliases: string[] = [];
 
-  constructor(Ucid: string, Name: string) {
+  constructor(Ucid: string, Name: string, Aliases: string[]) {
     this.ucid = Ucid;
     this.name = Name;
-  }
-
-  addAlias(Name: string): void {
-    this.aliases.push(Name);
+    this.aliases = Aliases;
   }
 }

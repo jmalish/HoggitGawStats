@@ -6,14 +6,18 @@
 <button (click)="test()">Test</button>
 <br>
 
-<div class="pilotSearch">Search: <input #searchBox id="search-box" (input)="search(searchBox.value)" /></div><br/>
+<div class="pilotSearch">Search: <input #searchBox id="search-box" (input)="searchPilots(searchBox.value)" /></div><br/>
 
 <div class="pilotList">
   <ul class="pilots">
-    <li *ngFor="let pilot of pilots" (click)="onSelect(pilot)">{{pilot.name}}</li>
+    <li *ngFor="let pilot of displayPilots" (click)="goToPilot(pilot.ucid)">{{pilot.name}}</li>
+    <!--<li *ngFor="let pilot of displayPilots"><a href="pilot/{{pilot.ucid}}">{{pilot.name}}</a></li>-->
   </ul>
 </div>
 
-<div class="selectedPilot">
-  <span *ngIf="selectedPilot">{{selectedPilot.name}}</span>
-</div>
+<!--<div class="selectedPilot" *ngIf="selectedPilot">-->
+    <!--<h4>AKA:</h4>-->
+    <!--<ul class="aliases">-->
+      <!--<li *ngFor="let alias of selectedPilot.aliases">{{alias}}</li>-->
+    <!--</ul>-->
+<!--</div>-->

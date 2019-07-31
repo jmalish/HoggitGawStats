@@ -9,7 +9,7 @@
   float: left;
 }
 
-.selectedPilot span {
+.selectedPilot {
   border: solid 2px black;
   padding: 10px;
 }
