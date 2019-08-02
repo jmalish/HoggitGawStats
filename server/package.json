@@ -2,9 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "test.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "tsc && nodemon dist/server.js"
+    "start": "npm run build:live",
+    "build": "tsc -p .",
+    "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/server.ts"
   },
   "author": "",
   "license": "ISC",
@@ -18,5 +20,6 @@
     "request": "2.88.0",
     "tsc": "1.20150623.0",
     "typescript": "3.4.1"
-  }
+  },
+  "devDependencies": {}
 }

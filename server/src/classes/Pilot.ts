@@ -9,10 +9,6 @@ class Pilot {
         this.ucid = _ucid;
         this.slID = _slID;
     }
-
-    addAlias(_name) {
-        this.aliases.push(_name);
-    }
 }
 
 module.exports = Pilot;
