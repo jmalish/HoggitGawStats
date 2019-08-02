@@ -1,13 +1,10 @@
-<p>
-  pilots works!
-</p>
-
 <button (click)="getPilots()">Get Pilots</button><br>
 <button (click)="test()">Test</button>
 <br>
 
 <div class="pilotSearch">Search: <input #searchBox id="search-box" (input)="searchPilots(searchBox.value)" /></div><br/>
 
+<div class="retrieveWarning" *ngIf="pilots.length === 0">Retrieving list of pilots, hold on!</div>
 <div class="pilotList">
   <ul class="pilots">
     <li *ngFor="let pilot of displayPilots" (click)="goToPilot(pilot.ucid)">{{pilot.name}}</li>

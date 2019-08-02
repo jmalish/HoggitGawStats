@@ -1,3 +1,10 @@
-<p>
-  Showing details for {{pilot.name}}
-</p>
+<span *ngIf="pilot.aliases.length > 0">
+  <p><b>{{pilot.name}}</b> has also flown under the alias(es):</p>
+  <ul>
+    <li *ngFor="let alias of pilot.aliases">{{alias}}</li>
+  </ul>
+</span>
+
+<span *ngIf="pilot.aliases.length === 0">
+  <p><b>{{pilot.name}}</b> has also no known aliases.</p>
+</span>

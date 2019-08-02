@@ -24,8 +24,6 @@ export class PilotDetailComponent implements OnInit, OnDestroy {
       this.ucid = params[key];
       this.getPilotDetails();
     });
-
-    console.log(this.ucid);
   }
 
   ngOnDestroy() {
