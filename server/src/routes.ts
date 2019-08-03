@@ -13,8 +13,8 @@ let playersData = [];
 readNamesFile(_ => {});
 readTeamKillsFile(_ => {});
 readPlayerDataFile(_ => {
-    console.log(playersData[0]);
-    console.log(JSON.stringify(playersData[0]));
+    console.log(playersData[0].player["uID"]);
+    // console.log(JSON.stringify(playersData[0]));
 });
 
 router.get('/test', function (req, res, next) {
@@ -124,26 +124,26 @@ function readPlayerDataFile(callback) {
         rows.forEach(row => {
             if (row != rows[0]) { // skip header row
                 // temp local arrays
-                let player = [];
-                let weapons = [];
-                let kills = [];
-                let aircraft = [];
-                let losses = [];
+                let player = {};
+                let weapons = {};
+                let kills = {};
+                let aircraft = {};
+                let losses = {};
 
                 let columns = row.split(',');
 
                 for (let i = 0; i < columns.length - 1; i++) {
                     if (columns[i] != '0') {
                         if (headers[i].match(/\bweapon/)) { // isWeapon
-                            weapons.push({[headers[i]]: columns[i]});
+                            weapons[headers[i]] = columns[i];
                         } else if (headers[i].match(/kills/)) { // isKill
-                            kills.push({[headers[i]]: columns[i]});
+                            kills[headers[i]] = columns[i];
                         } else if (headers[i].match(/Time/)) { // isAircraft
-                            aircraft.push({[headers[i]]: columns[i]});
+                            aircraft[headers[i]] = columns[i];
                         } else if (headers[i].match(/loss/)) { // isLoss
-                            losses.push({[headers[i]]: columns[i]});
+                            losses[headers[i]] = columns[i];
                         } else { // otherwise it's player data (uID, and slID)
-                            player.push({[headers[i]]: columns[i]});
+                            player[headers[i]] = columns[i];
                         }
                     }
                 }
