@@ -10,13 +10,16 @@ let pilots: Pilot[] = [];
 let teamKills: TeamKill[] = [];
 let playersData = [];
 
+// <editor-fold desc='Startup'>
 readNamesFile(_ => {});
 readTeamKillsFile(_ => {});
 readPlayerDataFile(_ => {
-    console.log(playersData[0].player["uID"]);
+    console.log(playersData[playersData.length - 1]);
     // console.log(JSON.stringify(playersData[0]));
 });
+// </editor-fold desc='Startup'>
 
+// <editor-fold desc='Routes'>
 router.get('/test', function (req, res, next) {
     res.send('test!');
 });
@@ -50,7 +53,7 @@ router.get('/playerData/:ucid', function (req, res, next) {
 
     // res.send(findPilot);
 });
-
+// </editor-fold desc='Routes'>
 
 // <editor-fold desc='Functions'>
 function readNamesFile(callback) {
@@ -121,32 +124,65 @@ function readPlayerDataFile(callback) {
 
         let headers = rows[0].split(',');
 
+        // local arrays for totals
+        let playerTotals = {};
+        playerTotals["uID"] = 'Totals';
+        let weaponsTotals = {};
+        let killsTotals = {};
+        let aircraftTotals = {};
+        let lossesTotals = {};
+
+        let testTotal;
+        let testTotalNum = 0;
+
         rows.forEach(row => {
             if (row != rows[0]) { // skip header row
-                // temp local arrays
+                // temp local arrays for player
                 let player = {};
                 let weapons = {};
                 let kills = {};
                 let aircraft = {};
                 let losses = {};
 
+
                 let columns = row.split(',');
 
                 for (let i = 0; i < columns.length - 1; i++) {
-                    if (columns[i] != '0') {
+                    if (columns[i] != '0' && columns[i] != undefined) {
                         if (headers[i].match(/\bweapon/)) { // isWeapon
                             weapons[headers[i]] = columns[i];
+
+                            if (weaponsTotals[headers[i]] === undefined) {
+                                weaponsTotals[headers[i]] = 0;
+                            }
+                            weaponsTotals[headers[i]] += parseInt(columns[i]);
                         } else if (headers[i].match(/kills/)) { // isKill
                             kills[headers[i]] = columns[i];
+
+                            if (killsTotals[headers[i]] === undefined) {
+                                killsTotals[headers[i]] = 0;
+                            }
+                            killsTotals[headers[i]] += parseInt(columns[i]);
                         } else if (headers[i].match(/Time/)) { // isAircraft
                             aircraft[headers[i]] = columns[i];
+
+                            if (aircraftTotals[headers[i]] === undefined) {
+                                aircraftTotals[headers[i]] = 0.00;
+                            }
+                            aircraftTotals[headers[i]] += parseFloat(columns[i]);
                         } else if (headers[i].match(/loss/)) { // isLoss
                             losses[headers[i]] = columns[i];
+
+                            if (lossesTotals[headers[i]] === undefined) {
+                                lossesTotals[headers[i]] = 0;
+                            }
+                            lossesTotals[headers[i]] += parseInt(columns[i]);
                         } else { // otherwise it's player data (uID, and slID)
                             player[headers[i]] = columns[i];
                         }
                     }
                 }
+
 
                 const newPlayerData = {
                     player,
@@ -158,6 +194,16 @@ function readPlayerDataFile(callback) {
 
                 playersData.push(newPlayerData);
             }
+
+            const totalsData = {
+                playerTotals,
+                weaponsTotals,
+                killsTotals,
+                aircraftTotals,
+                lossesTotals
+            };
+
+            playersData.push(totalsData);
         });
 
         callback(true);
