@@ -1,19 +1,20 @@
 import * as express from 'express';
 import * as fs from 'fs';
 
-let Pilot = require('./classes/Pilot.js');
+let Pilot = require('./classes/Pilot');
 let TeamKill = require('./classes/TeamKill');
 
 let router = express.Router();
 
 let pilots: Pilot[] = [];
 let teamKills: TeamKill[] = [];
-let playerDatas = [];
+let playersData = [];
 
 readNamesFile(_ => {});
 readTeamKillsFile(_ => {});
 readPlayerDataFile(_ => {
-    // console.log(playerDatas[0]);
+    console.log(playersData[0]);
+    console.log(JSON.stringify(playersData[0]));
 });
 
 router.get('/test', function (req, res, next) {
@@ -21,7 +22,7 @@ router.get('/test', function (req, res, next) {
 });
 
 router.get('/pilots', function (req, res, next) {
-    res.send(pilots);
+    res.json(pilots);
 });
 
 router.get('/pilot/:ucid', function (req, res, next) {
@@ -31,18 +32,23 @@ router.get('/pilot/:ucid', function (req, res, next) {
         return pilot.ucid === pilotUcid;
     });
 
-    res.send(findPilot);
+    res.json(findPilot);
 });
 
 router.get('/playerData/:ucid', function (req, res, next) {
-    let pilotUcid = req.params.ucid;
+    let requestedUcid = req.params.ucid;
 
-    let findPilot = playerDatas.find(function (pData) { // TODO: This isn't working correctly, just returns an empty array
-        return pData["player"].uID = pilotUcid;
-    });
+    // let findPilot = playerDatas.find(function (pData) { // TODO: This isn't working correctly, just returns an empty array
+    //     playerDatas[0][0].value.forEach(entry => {
+    //         if (entry.key === 'uID') {
+    //             return entry.value = requestedUcid;
+    //         }
+    //     })
+    // });
 
-    // console.log(pilotUcid);
-    res.send(findPilot);
+    // console.log(findPilot);
+
+    // res.send(findPilot);
 });
 
 
@@ -108,68 +114,56 @@ function readTeamKillsFile(callback) {
 }
 
 function readPlayerDataFile(callback) {
-    playerDatas = []; // empty array
+    playersData = []; // empty array
 
     fs.readFile('data/player_data.csv', 'utf8', function(err, data) {
         let rows = data.split('\r\n');
 
         let headers = rows[0].split(',');
 
-        // arrays
-        let newPlayerData = {};
-        let player = [];
-        let weapons = [];
-        let kills = [];
-        let aircraft = [];
-        let losses = [];
-
         rows.forEach(row => {
             if (row != rows[0]) { // skip header row
-                // empty temp arrays
-                newPlayerData = [];
-                player = [];
-                weapons = [];
-                kills = [];
-                aircraft = [];
-                losses = [];
+                // temp local arrays
+                let player = [];
+                let weapons = [];
+                let kills = [];
+                let aircraft = [];
+                let losses = [];
 
                 let columns = row.split(',');
 
                 for (let i = 0; i < columns.length - 1; i++) {
                     if (columns[i] != '0') {
-                        // regexps
-                        let isWeapon = headers[i].match(/\bweapon/);
-                        let isKill = headers[i].match(/kills/);
-                        let isAircraft = headers[i].match(/Time/);
-                        let isLoss = headers[i].match(/loss/);
-
-                        if (isWeapon) {
-                            weapons[headers[i]] = columns[i];
-                        } else if (isKill) {
-                            kills[headers[i]] = columns[i];
-                        } else if (isAircraft) {
-                            aircraft[headers[i]] = columns[i];
-                        } else if (isLoss) {
-                            losses[headers[i]] = columns[i];
-                        } else {
-                            player[headers[i]] = [columns[i]];
+                        if (headers[i].match(/\bweapon/)) { // isWeapon
+                            weapons.push({[headers[i]]: columns[i]});
+                        } else if (headers[i].match(/kills/)) { // isKill
+                            kills.push({[headers[i]]: columns[i]});
+                        } else if (headers[i].match(/Time/)) { // isAircraft
+                            aircraft.push({[headers[i]]: columns[i]});
+                        } else if (headers[i].match(/loss/)) { // isLoss
+                            losses.push({[headers[i]]: columns[i]});
+                        } else { // otherwise it's player data (uID, and slID)
+                            player.push({[headers[i]]: columns[i]});
                         }
                     }
                 }
 
-                newPlayerData["player"] = player;
-                newPlayerData["weapons"] = weapons;
-                newPlayerData["kills"] = kills;
-                newPlayerData["aircraft"] = aircraft;
-                newPlayerData["losses"] = losses;
+                const newPlayerData = {
+                    player,
+                    weapons,
+                    kills,
+                    aircraft,
+                    losses
+                };
 
-                playerDatas.push(newPlayerData);
+                playersData.push(newPlayerData);
             }
         });
 
         callback(true);
     });
 }
+
 // </editor-fold desc='Functions'>
 
 module.exports = router;
