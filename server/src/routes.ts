@@ -13,10 +13,7 @@ let playersData = [];
 // <editor-fold desc='Startup'>
 readNamesFile(_ => {});
 readTeamKillsFile(_ => {});
-readPlayerDataFile(_ => {
-    console.log(playersData[playersData.length - 1]);
-    // console.log(JSON.stringify(playersData[0]));
-});
+readPlayerDataFile(_ => {});
 // </editor-fold desc='Startup'>
 
 // <editor-fold desc='Routes'>
@@ -59,38 +56,39 @@ router.get('/playerData/:ucid', function (req, res, next) {
 function readNamesFile(callback) {
     pilots = []; // empty pilots array
 
-    fs.readFile('data/name_data.csv', 'utf8', function(err, data) {
-        let rows = data.split('\r\n');
+    fs.readFile('data/name_data.csv', 'utf8', function(err, data) { // read file
+        let rows = data.split('\r\n'); // split file into rows
 
-        rows.forEach(row => {
-            let newPilot = new Pilot();
+        rows.forEach(row => { // for each row
+            let newPilot = new Pilot(); // create new Pilot object
             if (row[0] != undefined) { // make sure we don't grab an empty line
-                let columns = row.split(',');
+                let columns = row.split(','); // split row into columns
 
                 if (columns[0] === 'uID') return; // skip headers line
 
-                newPilot.name = '';
-                newPilot.ucid = columns[0];
-                newPilot.slID = columns[1];
+                newPilot.name = ''; // set pilot name to a blank string for the sake of the object, set later
+                newPilot.ucid = columns[0]; // set pilot ucid
+                newPilot.slID = columns[1]; // set pilot slID
 
-                for (let i = columns.length - 1; i > 1; i--) {
-                    if (columns[i] !=  '0' && columns[i] != '0\r') {
-                        if (newPilot.name === '') {
-                            newPilot.name = columns[i];
+                for (let i = columns.length - 1; i > 1; i--) { // for each column
+                    if (columns[i] !=  '0' && columns[i] != '0\r') { // ignore columns that are just a 0
+                        if (newPilot.name === '') { // if pilot name hasn't been set
+                            newPilot.name = columns[i]; // set it
                         } else {
                             if (columns[i] != newPilot.name) { // make sure this name doesn't match the current name
                                 let checkAliases = newPilot.aliases.find(alias => { // make sure this name isn't already in the array
                                     return alias === columns[i];
                                 });
 
-                                if (!checkAliases) newPilot.aliases.push(columns[i]);
+                                if (!checkAliases) newPilot.aliases.push(columns[i]); // add it if not
                             }
                         }
                     }
                 }
             }
-            if (newPilot.ucid != undefined) {
-                pilots.push(newPilot);
+
+            if (newPilot.ucid != undefined) { // if ucid is undefined, it's probably a blank line, so ignore it
+                pilots.push(newPilot); // add new pilot to array
             }
         });
         callback(true);
@@ -100,12 +98,12 @@ function readNamesFile(callback) {
 function readTeamKillsFile(callback) {
     teamKills = []; // clear teamKills array
 
-    fs.readFile('data/teamkills.csv', 'utf8', function(err, data) {
-        let rows = data.split('\r\n');
+    fs.readFile('data/teamkills.csv', 'utf8', function(err, data) { // read file
+        let rows = data.split('\r\n'); // split file into arrays
 
-        rows.forEach(row => {
+        rows.forEach(row => { // for each row
             if (row[0] != undefined) { // make sure we don't grab an empty line
-                let columns = row.split(',');
+                let columns = row.split(','); // split row into columns
 
                 if (columns[0] === 'uID') return; // skip headers line
 
@@ -119,43 +117,39 @@ function readTeamKillsFile(callback) {
 function readPlayerDataFile(callback) {
     playersData = []; // empty array
 
-    fs.readFile('data/player_data.csv', 'utf8', function(err, data) {
-        let rows = data.split('\r\n');
+    fs.readFile('data/player_data.csv', 'utf8', function(err, data) { // read file
+        let rows = data.split('\r\n'); // split file into rows
 
-        let headers = rows[0].split(',');
+        let headers = rows[0].split(','); // get headers from the first row
 
         // local arrays for totals
         let playerTotals = {};
-        playerTotals["uID"] = 'Totals';
+        playerTotals["uID"] = 'Totals'; // set uID as Totals for the sake of searching
         let weaponsTotals = {};
         let killsTotals = {};
         let aircraftTotals = {};
         let lossesTotals = {};
 
-        let testTotal;
-        let testTotalNum = 0;
-
-        rows.forEach(row => {
+        rows.forEach(row => { // for each row
             if (row != rows[0]) { // skip header row
-                // temp local arrays for player
+                // local arrays
                 let player = {};
                 let weapons = {};
                 let kills = {};
                 let aircraft = {};
                 let losses = {};
 
+                let columns = row.split(','); // split row into columns
 
-                let columns = row.split(',');
-
-                for (let i = 0; i < columns.length - 1; i++) {
-                    if (columns[i] != '0' && columns[i] != undefined) {
+                for (let i = 0; i < columns.length - 1; i++) { // for each column
+                    if (columns[i] != '0' && columns[i] != undefined) { // skip the cell if 0 to save space, undefined means a blank line, so ignore those too
                         if (headers[i].match(/\bweapon/)) { // isWeapon
-                            weapons[headers[i]] = columns[i];
+                            weapons[headers[i]] = columns[i]; // add column to weapons array
 
-                            if (weaponsTotals[headers[i]] === undefined) {
-                                weaponsTotals[headers[i]] = 0;
+                            if (weaponsTotals[headers[i]] === undefined) { // if weaponsTotals is empty, we need to tell it it's a number
+                                weaponsTotals[headers[i]] = 0; // set it to 0
                             }
-                            weaponsTotals[headers[i]] += parseInt(columns[i]);
+                            weaponsTotals[headers[i]] += parseInt(columns[i]); // add this value to the correlating array location
                         } else if (headers[i].match(/kills/)) { // isKill
                             kills[headers[i]] = columns[i];
 
@@ -183,8 +177,7 @@ function readPlayerDataFile(callback) {
                     }
                 }
 
-
-                const newPlayerData = {
+                const newPlayerData = { // add arrays to object
                     player,
                     weapons,
                     kills,
@@ -192,10 +185,10 @@ function readPlayerDataFile(callback) {
                     losses
                 };
 
-                playersData.push(newPlayerData);
+                playersData.push(newPlayerData); // add this playerData to array
             }
 
-            const totalsData = {
+            const totalsData = { // add arrays to totals
                 playerTotals,
                 weaponsTotals,
                 killsTotals,
@@ -203,13 +196,12 @@ function readPlayerDataFile(callback) {
                 lossesTotals
             };
 
-            playersData.push(totalsData);
+            playersData.push(totalsData); // add totals object to end of array
         });
 
         callback(true);
     });
 }
-
 // </editor-fold desc='Functions'>
 
-module.exports = router;
+module.exports = router; // export router

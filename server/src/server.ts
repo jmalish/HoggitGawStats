@@ -1,17 +1,10 @@
 import * as express from 'express';
 import * as cors from 'cors';
 import * as bodyParser from 'body-parser';
-import * as fs from 'fs';
-import * as request from 'request';
 
 // custom modules and classes
 let secrets = require('../../secrets.json');
-// let Pilot = require('./classes/Pilot.js');
-// let TeamKill = require('./classes/TeamKill.js');
 let router = require('./routes');
-
-// let pilots: Pilot[] = [];
-// let teamKills: TeamKill[] = [];
 
 // <editor-fold desc="Express app setup">
 const port = secrets.localserver.port;
