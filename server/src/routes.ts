@@ -23,7 +23,15 @@ router.get('/test', function (req, res, next) {
 });
 
 router.get('/pilots', function (req, res, next) {
-    res.json(pilots);
+    let returnedPilots: Pilot[] = pilots;
+
+    if (req.query['search'] != undefined) {
+        returnedPilots = pilots.filter(pilot => pilot.name.toLowerCase().indexOf(req.query['search'].toLowerCase()) > -1);
+    } else if (req.query['ucid'] != undefined) {
+        returnedPilots = pilots.filter(pilot => pilot.ucid === req.query['ucid']);
+    }
+
+    res.json(returnedPilots);
 });
 
 router.get('/pilot/:ucid', function (req, res, next) {
