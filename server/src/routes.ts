@@ -9,6 +9,7 @@ let router = express.Router();
 let pilots: Pilot[] = [];
 let teamKills: TeamKill[] = [];
 let playersData = [];
+let totalsData = [];
 
 // <editor-fold desc='Startup'>
 readNamesFile(_ => {});
@@ -35,20 +36,18 @@ router.get('/pilot/:ucid', function (req, res, next) {
     res.json(findPilot);
 });
 
+router.get('/playerData/totals', function (req, res, next) {
+    res.json(totalsData[0]);
+});
+
 router.get('/playerData/:ucid', function (req, res, next) {
-    let requestedUcid = req.params.ucid;
+    let pilotUcid = req.params.ucid;
 
-    // let findPilot = playerDatas.find(function (pData) { // TODO: This isn't working correctly, just returns an empty array
-    //     playerDatas[0][0].value.forEach(entry => {
-    //         if (entry.key === 'uID') {
-    //             return entry.value = requestedUcid;
-    //         }
-    //     })
-    // });
+    let findPilot = playersData.find(function (playerData) {
+        return playerData.player['uID'] === pilotUcid;
+    });
 
-    // console.log(findPilot);
-
-    // res.send(findPilot);
+    res.json(findPilot);
 });
 // </editor-fold desc='Routes'>
 
@@ -123,8 +122,6 @@ function readPlayerDataFile(callback) {
         let headers = rows[0].split(','); // get headers from the first row
 
         // local arrays for totals
-        let playerTotals = {};
-        playerTotals["uID"] = 'Totals'; // set uID as Totals for the sake of searching
         let weaponsTotals = {};
         let killsTotals = {};
         let aircraftTotals = {};
@@ -187,17 +184,18 @@ function readPlayerDataFile(callback) {
 
                 playersData.push(newPlayerData); // add this playerData to array
             }
-
-            const totalsData = { // add arrays to totals
-                playerTotals,
-                weaponsTotals,
-                killsTotals,
-                aircraftTotals,
-                lossesTotals
-            };
-
-            playersData.push(totalsData); // add totals object to end of array
         });
+
+        let totalPlayers = playersData.length;
+        const newTotalsData = { // add arrays to totals
+            totalPlayers,
+            weaponsTotals,
+            killsTotals,
+            aircraftTotals,
+            lossesTotals
+        };
+
+        totalsData.push(newTotalsData); // add totals object to totalsData array
 
         callback(true);
     });
