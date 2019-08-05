@@ -4,11 +4,16 @@
   <input #searchBox id="search-box" (input)="search(searchBox.value)" />
 
   <ul class="search-result">
-    <li *ngFor="let pilot of pilots$ | async" (click)="goToPilot(pilot.ucid)">{{pilot.name}}</li>
+    <li *ngFor="let pilot of pilots$ | async" (click)="goToPilot(pilot.ucid)">
+      {{pilot.name}}
+      <ul class="aliases" *ngIf="isSearching">
+        <li *ngFor="let alias of pilot.aliases">{{alias}}</li>
+      </ul>
+    </li>
   </ul>
 
-  <ul *ngIf="!searched" class="allPilots">
-    <p>show</p>
-    <li *ngFor="let pilot of allPilots">(click)="goToPilot(pilot.ucid)">{{pilot.name}}</li>
+  <ul *ngIf="!initialSearched" class="allPilots">
+    <p *ngIf="allPilots.length === 0">Retrieving Pilots, one sec!</p>
+    <li *ngFor="let pilot of allPilots" (click)="goToPilot(pilot.ucid)">{{pilot.name}}</li>
   </ul>
 </div>

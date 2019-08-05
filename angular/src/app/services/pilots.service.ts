@@ -9,8 +9,7 @@ import * as secrets from '../../../../secrets.json'; // can ignore module warnin
   providedIn: 'root'
 })
 export class PilotsService {
-  private pilotsUrl = 'http://localhost:' + secrets.localserver.port;
-  pilots: Pilot[] = [];
+  private pilotsUrl = 'http://' + secrets.server.url + ':' + secrets.server.port;
 
   constructor(
     private http: HttpClient
@@ -28,15 +27,10 @@ export class PilotsService {
     if (!name.trim()) {
       return this.getAllPilots();
     }
-
     return this.http.get<Pilot[]>(`${this.pilotsUrl}/pilots?search=${name}`);
   }
 
-  getAllPilots(): any {
-    if (this.pilots.length > 0) {return of(this.pilots); }
-
-    this.http.get<Pilot[]>(`${this.pilotsUrl}/pilots`).subscribe(pilots => {
-      return this.pilots = pilots;
-    });
+  getAllPilots(): Observable<Pilot[]> {
+    return this.http.get<Pilot[]>(`${this.pilotsUrl}/pilots`);
   }
 } // end of PilotService class
