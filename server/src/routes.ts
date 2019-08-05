@@ -23,15 +23,16 @@ router.get('/test', function (req, res, next) {
 });
 
 router.get('/pilots', function (req, res, next) {
-    let returnedPilots: Pilot[] = pilots;
-
     if (req.query['search'] != undefined) {
-        returnedPilots = pilots.filter(pilot => pilot.name.toLowerCase().indexOf(req.query['search'].toLowerCase()) > -1);
-    } else if (req.query['ucid'] != undefined) {
-        returnedPilots = pilots.filter(pilot => pilot.ucid === req.query['ucid']);
-    }
+        searchPilots(req.query['search'], pilots => {
+            return res.json(pilots);
 
-    res.json(returnedPilots);
+        });
+    } else if (req.query['ucid'] != undefined) {
+        res.json(pilots.filter(pilot => pilot.ucid === req.query['ucid']));
+    } else {
+        res.json(pilots);
+    }
 });
 
 router.get('/pilot/:ucid', function (req, res, next) {
@@ -207,6 +208,25 @@ function readPlayerDataFile(callback) {
 
         callback(true);
     });
+}
+
+function searchPilots(searchTerm: string, callback) {
+    searchTerm = searchTerm.toLowerCase();
+
+    let foundPilots: Pilot[] = pilots.filter(pilot => {
+        if (pilot.aliases.length > 0) { // if pilot has at least one alias
+            let aliasTest = pilot.aliases.filter(alias => {
+                return alias.toLowerCase().indexOf(searchTerm) > -1;
+            });
+
+            if (aliasTest.length > 0) {
+                return true;
+            }
+        }
+        return pilot.name.toLowerCase().indexOf(searchTerm) > -1
+    });
+
+    callback(foundPilots);
 }
 // </editor-fold desc='Functions'>
 

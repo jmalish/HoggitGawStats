@@ -4,9 +4,7 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "start": "npm run build:live",
-    "build": "tsc -p .",
-    "build:live": "nodemon --watch '*.ts' --exec 'ts-node' src/server.ts"
+    "start": "nodemon dist/server"
   },
   "author": "",
   "license": "ISC",

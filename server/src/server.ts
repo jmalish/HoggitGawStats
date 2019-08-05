@@ -7,7 +7,7 @@ let secrets = require('../../secrets.json');
 let router = require('./routes');
 
 // <editor-fold desc="Express app setup">
-const port = secrets.localserver.port;
+const port = secrets.server.port;
 
 const app = express() // setup express with necessary settings
     .use(cors())
